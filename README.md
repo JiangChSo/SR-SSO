@@ -1,5 +1,23 @@
-# Password-Hardening Threshold Authentication against Subversion Attacks
-Abstract—Password-based single-sign-on (SSO) enables users to be authenticated by an identity server with passwords and obtain tokens if the authentication passes. With a token, a user can request services from associated application servers. To tackle single-point-of-failure, a group of identity servers are employed to identify users and issue tokens in a threshold way. In such password-hardening threshold SSO schemes, for a single user, each identity server needs to secretly store a credential derived from her/his password for authentication. If an adversary compromises a threshold number of password-derived credentials of a user, he can impersonate the user to request tokens. Existing schemes suffer from another user impersonation due to lack of tokens’ ownership proofs: adversaries could impersonate a user to illegally access services using her/his token. Furthermore, we reveal a potential threat to password-hardening threshold SSO: vulnerability against subversion attacks (SAs), where adversaries (e.g., adversarial manufacturers) might maliciously implement algorithms such that the subverted implementation stealthily discloses secrets (such as passwords) from biased output. In this paper, we propose SR-PTSSO, a subversion-resistant password-hardening threshold SSO scheme. In SR-PTSSO, we present a password-derived public key encryption mechanism that enables the identity servers to achieve user authentication without secretly storing users’ password-derived credentials, which addresses the issue of password-derived credential leakage while reducing storage costs of secret information on the identity servers by about sixty percent. We conceive a proof-of-ownership mechanism to prove ownership of tokens in service access, so that adversaries cannot illegally use them. Moreover, SR-PTSSO adopts cryptographic reverse firewalls to sanitize messages transmitted between entities to resist SAs. Provable security and high efficiency of SR-PTSSO are demonstrated by comprehensive analysis and experimental evaluations.         
+# SR-SSO
+
+This repository contains a reference implementation of SR-SSO: Password-Hardening Threshold Single-Sign-On for Mobile Users against Subverted Implementation.
+
+WARNING: This is an academic prototype, and should not be used in applications without code review.
+
+## How to run
+### Dependencies
+- Crypto++ 8.6.0
+- PBC 0.5.14
+- NTL 11.5.1
+### Running the repo
+Clone this repo. Make sure `g++` and `cmake` have been installed. (Linux) \
+Build and run the experiment locally.
+```
+cd Build
+cmake ..
+make
+./build < ../Param/a.param
+```
           
 ## Here is the implementation of SR-PTSSO.              
 If you attempt to run the code, please make sure that pbc and openssl are installed. I would suggest to start with main.c, since it will check whether necessary dependencies exist. The environment can be configured based on the runtime prompts.          
