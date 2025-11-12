@@ -1,0 +1,165 @@
+
+/*
+ *  Model Name: SR-SSO.spthy
+ *  Status: DEVELOPMENTAL
+ *
+ *  Comments:
+ */
+
+theory SR_SSO
+begin
+
+builtins: diffie-hellman, bilinear-pairing, hashing, asymmetric-encryption, symmetric-encryption
+
+/************************************/
+/*     Initialization Rules         */
+/************************************/
+
+
+rule init_AS:
+    [ Fr(~skA) ]
+    --[ OnlyOnce(<'ASInit', $A>) ]->
+    [ 
+        !Pk_AS($A, pk(~skA)),
+        !Sk_AS($A, ~skA),
+        Out(<$A, pk(~skA)>)
+    ]
+
+rule init_user:
+    [ Fr(~skU) ]
+    --[ OnlyOnce(<'UserReg', $U>) ]->
+    [ 
+        !Pk_User($U, pk(~skU)),
+        !Sk_User($U, ~skU),
+        Out(<$U, pk(~skU)>)
+    ]
+
+
+/************************************/
+/*       Protocol Rules             */
+/************************************/
+
+
+rule login_user_AS_flow1:
+    let
+        C1=aenc('g'^~x, pkAS)
+    in
+    [ 
+        Fr(~x),
+        !Pk_AS($A, pkAS),
+        !Sk_User($U, ~skU)
+    ]
+    --[ StartU($U) ]->
+    [  
+        Out(<pk(~skU), C1>),
+        User_login_state1(~x, pkAS, ~skU)
+    ]
+    
+rule access_AS_user_flow2:
+    let
+        gx=adec(C1, ~skA)
+        C2=aenc('g'^~y, pkU)
+        Ks=gx^~y 
+        tao2=h(<pkA, pkU, 'g'^~y, gx, Ks>)
+    in
+    [  
+        In(<C1>),
+        !Sk_AS($A, ~skA),
+        !Pk_AS($A, pkA),
+        !Pk_User($U, pkU),
+        Fr(~y)
+    ]
+    --[ StartA($A) ]->
+    [  
+        Out(<C2, tao2>),
+        AS_access_state1(pkU, pkA, ~y, gx, Ks)
+    ]
+
+rule access_user_AS_flow3:
+    let
+        gy=adec(C2, ~skU)
+        Ks=gy^~x
+        tao1=h(<pk(~skU), pkA, gy, 'g'^~x, Ks>)
+        SK=h(<pkA, pk(~skU), 'g'^~x, gy, Ks>)
+    in
+    [  
+        In(<C2, tao2>),
+        User_login_state1(~x, pkAS, ~skU),
+        !Pk_AS($A, pkA),
+    ]
+    --[ 
+        Eq(tao2, h(<pkA, pk(~skU), gy, 'g'^~x, Ks>)),
+        UserSessionKeyFinished($U, $A, SK)
+    ]->
+    [  
+        Out(<tao1>)
+    ]
+
+rule access_AS_user_flow4:
+    let
+        SK=h(<pkA, pkU, gx, 'g'^~y, Ks>)
+    in
+    [  
+        In(<tao1>),
+        AS_access_state1(pkU, pkA, ~y, gx, Ks),
+        !Pk_User($U, pkU)
+    ]
+    --[ 
+        Eq(tao1, h(<pkU, pkA, 'g'^~y, gx, Ks>)),
+        ASSessionKeyFinished($U, $A, SK)
+    ]->
+    [  
+
+    ]
+
+restriction OnlyOnce:
+"All n #i #j. OnlyOnce(n) @i & OnlyOnce(n) @j ==> #i = #j"
+
+restriction Equality:
+"All x y #i. Eq(x, y) @i ==> x=y"
+
+// lemma executability_login_access: exists-trace
+// "
+//     Ex U A SK1 SK2 #j1 #j2 .
+//         UserSessionKeyFinished(U, A, SK1) @j1 &
+//         ASSessionKeyFinished(U, A, SK2) @j2 &
+//         SK1 = SK2
+// "
+
+lemma user_session_auth:
+"
+    All U A SK #i3.
+    UserSessionKeyFinished(U, A, SK) @i3 ==>
+    (Ex #i5.
+        StartA(A) @i5 & i5 < i3 
+    )
+"
+
+lemma as_session_auth:
+"
+    All U A SK #i3.
+    ASSessionKeyFinished(U, A, SK) @i3 ==>
+    (Ex #i5.
+        StartU(U) @i5 & i5 < i3 
+    )
+"
+
+lemma user_session_key_secrecy:
+"
+    All U A SK #i3.
+    UserSessionKeyFinished(U, A, SK) @i3
+    ==>
+    not (Ex #i4. K(SK) @i4)
+"
+
+lemma as_session_key_secrecy:
+"
+    All U A SK #i3.
+    ASSessionKeyFinished(U, A, SK) @i3
+    ==>
+    not (Ex #i4. K(SK) @i4)
+"
+
+
+
+end
