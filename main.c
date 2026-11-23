@@ -14,7 +14,7 @@ int main() {
     char buff[129];
     char buff1[129];
     memset(buff,0, sizeof(buff));
-    initPP(&PP, param);
+    initPP(&PP, param128);
     element_printf("P = %B\n",PP.P);
     element_to_bytes(buff,PP.P);
     printf("%s\n",buff);
