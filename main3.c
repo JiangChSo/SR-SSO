@@ -75,7 +75,7 @@ int main()
 
     time_t start,end;
 
-    initPP(&PP,param);
+    initPP(&PP,param128);
     element_t tao;
     element_init_Zr(tao,PP.pairing);
     element_random(tao);
