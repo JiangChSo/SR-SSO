@@ -8,7 +8,7 @@ int main(){
     double totalTime;
 
     char buff[129];
-    initPP(&PP,param);
+    initPP(&PP,param128);
     FILE *fp = fopen("P_origin.txt", "rb+");
     fread(buff, sizeof(char),129,fp);
     fclose(fp);
